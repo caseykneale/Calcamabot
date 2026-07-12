@@ -213,7 +213,8 @@ fn apply_broadcast_fn(name: &str, arg: Value) -> Result<Value> {
         Value::Matrix(m) => {
             // Promote to complex matrix if any element would need complex promotion
             if m.iter().any(|row| {
-                row.iter().any(|&x| scalar::needs_complex_promotion(name, x))
+                row.iter()
+                    .any(|&x| scalar::needs_complex_promotion(name, x))
             }) {
                 let complex_m: Vec<Vec<num_complex::Complex<f64>>> = m
                     .iter()
@@ -310,14 +311,22 @@ fn apply_imag_broadcast(arg: Value) -> Result<Value> {
         Value::Matrix(m) => {
             let result: Vec<Vec<num_complex::Complex<f64>>> = m
                 .iter()
-                .map(|row| row.iter().map(|_| num_complex::Complex::new(0.0, 0.0)).collect())
+                .map(|row| {
+                    row.iter()
+                        .map(|_| num_complex::Complex::new(0.0, 0.0))
+                        .collect()
+                })
                 .collect();
             Ok(Value::ComplexMatrix(result))
         }
         Value::ComplexMatrix(m) => {
             let result: Vec<Vec<num_complex::Complex<f64>>> = m
                 .iter()
-                .map(|row| row.iter().map(|c| num_complex::Complex::new(0.0, c.im)).collect())
+                .map(|row| {
+                    row.iter()
+                        .map(|c| num_complex::Complex::new(0.0, c.im))
+                        .collect()
+                })
                 .collect();
             Ok(Value::ComplexMatrix(result))
         }

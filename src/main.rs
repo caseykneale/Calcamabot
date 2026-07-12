@@ -65,7 +65,13 @@ fn main() -> Result<()> {
 
 #[cfg(test)]
 mod tests {
+    use std::{env, path::PathBuf};
+
     use super::*;
+
+    fn get_temp_path(filename: &str) -> PathBuf {
+        env::temp_dir().join(filename)
+    }
 
     #[test]
     fn test_ensure_csv_ext_no_extension() {
@@ -79,47 +85,62 @@ mod tests {
 
     #[test]
     fn test_ensure_csv_ext_with_path() {
-        assert_eq!(ensure_csv_ext("/tmp/data"), "/tmp/data.csv");
+        let mut path = get_temp_path("data");
+        path.set_extension("csv");
+
+        let expected = get_temp_path("data.csv");
+        assert_eq!(ensure_csv_ext(path.to_str().unwrap()), expected);
     }
 
     #[test]
     fn test_write_csv_scalar() {
         let result = parse_and_eval("42").unwrap();
-        write_csv(&result, "/tmp/test_csv_scalar").unwrap();
-        let content = std::fs::read_to_string("/tmp/test_csv_scalar.csv").unwrap();
+        let path = get_temp_path("test_csv_scalar.csv");
+
+        write_csv(&result, path.to_str().unwrap()).unwrap();
+        let content = std::fs::read_to_string(&path).unwrap();
         assert_eq!(content, "x_0\n42\n");
     }
 
     #[test]
     fn test_write_csv_matrix() {
-        let result = parse_and_eval("[[1,2],[3,4]]").unwrap();
-        write_csv(&result, "/tmp/test_csv_matrix").unwrap();
-        let content = std::fs::read_to_string("/tmp/test_csv_matrix.csv").unwrap();
+        let result = parse_and_eval("[[1, 2], [3, 4]]").unwrap();
+        let path = get_temp_path("test_csv_matrix.csv");
+
+        write_csv(&result, path.to_str().unwrap()).unwrap();
+        let content = std::fs::read_to_string(&path).unwrap();
         assert_eq!(content, "x_0,x_1\n1,2\n3,4\n");
     }
 
     #[test]
     fn test_write_csv_vector() {
-        let result = parse_and_eval("[1,2,3]").unwrap();
-        write_csv(&result, "/tmp/test_csv_vector").unwrap();
-        let content = std::fs::read_to_string("/tmp/test_csv_vector.csv").unwrap();
+        let result = parse_and_eval("[1, 2, 3]").unwrap();
+        let path = get_temp_path("test_csv_vector.csv");
+
+        write_csv(&result, path.to_str().unwrap()).unwrap();
+        let content = std::fs::read_to_string(&path).unwrap();
         assert_eq!(content, "x_0,x_1,x_2\n1,2,3\n");
     }
 
     #[test]
     fn test_write_csv_range() {
         let result = parse_and_eval("{0,3,2}").unwrap();
-        write_csv(&result, "/tmp/test_csv_range").unwrap();
-        let content = std::fs::read_to_string("/tmp/test_csv_range.csv").unwrap();
+        let path = get_temp_path("test_csv_range.csv");
+
+        write_csv(&result, path.to_str().unwrap()).unwrap();
+        let content = std::fs::read_to_string(&path).unwrap();
         assert_eq!(content, "x_0,x_1\n0,2\n");
     }
 
     #[test]
     fn test_write_csv_preserves_csv_extension() {
         let result = parse_and_eval("3.14").unwrap();
-        write_csv(&result, "/tmp/test_csv_preserve.csv").unwrap();
-        assert!(std::path::Path::new("/tmp/test_csv_preserve.csv").exists());
-        let content = std::fs::read_to_string("/tmp/test_csv_preserve.csv").unwrap();
+        let path = get_temp_path("test_csv_preserve.csv");
+
+        write_csv(&result, path.to_str().unwrap()).unwrap();
+        assert!(path.exists());
+
+        let content = std::fs::read_to_string(&path).unwrap();
         assert_eq!(content, "x_0\n3.14\n");
     }
 }

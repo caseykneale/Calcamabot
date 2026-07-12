@@ -192,7 +192,9 @@ pub fn apply_binop(op: BinOp, l: Value, r: Value) -> Result<Value> {
         BinOp::DotMod | BinOp::Mod => apply_element_wise(|a, b| a.rem_euclid(b), &l, &r),
         BinOp::DotMul => apply_element_wise(|a, b| a * b, &l, &r),
         BinOp::Mul => match (&l, &r) {
-            (Value::Matrix(a), Value::Matrix(b)) => crate::eval::matrix::matmul(a, b).map(Value::Matrix),
+            (Value::Matrix(a), Value::Matrix(b)) => {
+                crate::eval::matrix::matmul(a, b).map(Value::Matrix)
+            }
             (Value::Matrix(a), Value::Scalar(b)) => Ok(Value::Matrix(
                 a.iter()
                     .map(|row| row.iter().map(|x| x * b).collect())
@@ -217,7 +219,10 @@ pub fn apply_binop(op: BinOp, l: Value, r: Value) -> Result<Value> {
                 Ok(Value::Scalar(a.powf(*b)))
             }
             (Value::Scalar(base), Value::Matrix(exp)) => {
-                if exp.iter().any(|row| row.iter().any(|&e| needs_complex_pow_promotion(*base, e))) {
+                if exp
+                    .iter()
+                    .any(|row| row.iter().any(|&e| needs_complex_pow_promotion(*base, e)))
+                {
                     let base_c = num_complex::Complex::new(*base, 0.0);
                     return Ok(Value::ComplexMatrix(
                         exp.iter()
@@ -234,13 +239,21 @@ pub fn apply_binop(op: BinOp, l: Value, r: Value) -> Result<Value> {
             (Value::Matrix(base), Value::Scalar(exp)) => {
                 let n = base.len();
                 if base.first().map_or(true, |r| r.len() != n) {
-                    if base.iter().any(|row| row.iter().any(|&b| needs_complex_pow_promotion(b, *exp))) {
+                    if base
+                        .iter()
+                        .any(|row| row.iter().any(|&b| needs_complex_pow_promotion(b, *exp)))
+                    {
                         let base_c: Vec<Vec<num_complex::Complex<f64>>> = base
                             .iter()
-                            .map(|row| row.iter().map(|&b| num_complex::Complex::new(b, 0.0)).collect())
+                            .map(|row| {
+                                row.iter()
+                                    .map(|&b| num_complex::Complex::new(b, 0.0))
+                                    .collect()
+                            })
                             .collect();
                         return Ok(Value::ComplexMatrix(
-                            base_c.iter()
+                            base_c
+                                .iter()
                                 .map(|row| row.iter().map(|b| b.powf(*exp)).collect())
                                 .collect(),
                         ));
@@ -293,12 +306,20 @@ fn apply_complex_binop(op: BinOp, l: Value, r: Value) -> Result<Value> {
             )),
             (Value::ComplexMatrix(a), Value::Scalar(b)) => Ok(Value::ComplexMatrix(
                 a.iter()
-                    .map(|col| col.iter().map(|c| *c * num_complex::Complex::from(b)).collect())
+                    .map(|col| {
+                        col.iter()
+                            .map(|c| *c * num_complex::Complex::from(b))
+                            .collect()
+                    })
                     .collect(),
             )),
             (Value::Scalar(a), Value::ComplexMatrix(b)) => Ok(Value::ComplexMatrix(
                 b.iter()
-                    .map(|col| col.iter().map(|c| num_complex::Complex::from(a) * c).collect())
+                    .map(|col| {
+                        col.iter()
+                            .map(|c| num_complex::Complex::from(a) * c)
+                            .collect()
+                    })
                     .collect(),
             )),
             (Value::Matrix(a), Value::ComplexMatrix(b)) => {
@@ -317,8 +338,12 @@ fn apply_complex_binop(op: BinOp, l: Value, r: Value) -> Result<Value> {
                 cmatmul(a, &bc).map(Value::ComplexMatrix)
             }
             (Value::Complex(a), Value::Complex(b)) => Ok(Value::Complex(a * b)),
-            (Value::Complex(a), Value::Scalar(b)) => Ok(Value::Complex(a * num_complex::Complex::from(b))),
-            (Value::Scalar(a), Value::Complex(b)) => Ok(Value::Complex(num_complex::Complex::from(a) * b)),
+            (Value::Complex(a), Value::Scalar(b)) => {
+                Ok(Value::Complex(a * num_complex::Complex::from(b)))
+            }
+            (Value::Scalar(a), Value::Complex(b)) => {
+                Ok(Value::Complex(num_complex::Complex::from(a) * b))
+            }
             (Value::Scalar(a), Value::Scalar(b)) => Ok(Value::Scalar(a * b)),
             _ => anyhow::bail!("Multiplication not supported for these operand types"),
         },
@@ -328,7 +353,9 @@ fn apply_complex_binop(op: BinOp, l: Value, r: Value) -> Result<Value> {
             match (l, r) {
                 (Value::Complex(a), Value::Complex(b)) => Ok(Value::Complex(a.powc(b))),
                 (Value::Complex(a), Value::Scalar(b)) => Ok(Value::Complex(a.powf(b))),
-                (Value::Scalar(a), Value::Complex(b)) => Ok(Value::Complex(num_complex::Complex::new(a, 0.0).powc(b))),
+                (Value::Scalar(a), Value::Complex(b)) => {
+                    Ok(Value::Complex(num_complex::Complex::new(a, 0.0).powc(b)))
+                }
                 (Value::ComplexMatrix(base), Value::Scalar(exp)) => Ok(Value::ComplexMatrix(
                     base.iter()
                         .map(|col| col.iter().map(|b| b.powf(exp)).collect())
@@ -336,7 +363,11 @@ fn apply_complex_binop(op: BinOp, l: Value, r: Value) -> Result<Value> {
                 )),
                 (Value::Scalar(base), Value::ComplexMatrix(exp)) => Ok(Value::ComplexMatrix(
                     exp.iter()
-                        .map(|col| col.iter().map(|e| num_complex::Complex::new(base, 0.0).powc(*e)).collect())
+                        .map(|col| {
+                            col.iter()
+                                .map(|e| num_complex::Complex::new(base, 0.0).powc(*e))
+                                .collect()
+                        })
                         .collect(),
                 )),
                 _ => anyhow::bail!("Invalid power: {:?} ^ {:?}", l_clone, r_clone),
@@ -353,8 +384,12 @@ where
 {
     match (l, r) {
         (Value::Complex(a), Value::Complex(b)) => Ok(Value::Complex(f(a, b))),
-        (Value::Complex(a), Value::Scalar(b)) => Ok(Value::Complex(f(a, num_complex::Complex::from(b)))),
-        (Value::Scalar(a), Value::Complex(b)) => Ok(Value::Complex(f(num_complex::Complex::from(a), b))),
+        (Value::Complex(a), Value::Scalar(b)) => {
+            Ok(Value::Complex(f(a, num_complex::Complex::from(b))))
+        }
+        (Value::Scalar(a), Value::Complex(b)) => {
+            Ok(Value::Complex(f(num_complex::Complex::from(a), b)))
+        }
         (Value::Complex(a), Value::ComplexMatrix(b)) => Ok(Value::ComplexMatrix(
             b.iter()
                 .map(|col| col.iter().map(|c| f(a, *c)).collect())
@@ -367,19 +402,32 @@ where
         )),
         (Value::Scalar(a), Value::ComplexMatrix(b)) => Ok(Value::ComplexMatrix(
             b.iter()
-                .map(|col| col.iter().map(|c| f(num_complex::Complex::from(a), *c)).collect())
+                .map(|col| {
+                    col.iter()
+                        .map(|c| f(num_complex::Complex::from(a), *c))
+                        .collect()
+                })
                 .collect(),
         )),
         (Value::ComplexMatrix(b), Value::Scalar(a)) => Ok(Value::ComplexMatrix(
             b.iter()
-                .map(|col| col.iter().map(|c| f(*c, num_complex::Complex::from(a))).collect())
+                .map(|col| {
+                    col.iter()
+                        .map(|c| f(*c, num_complex::Complex::from(a)))
+                        .collect()
+                })
                 .collect(),
         )),
         (Value::ComplexMatrix(a), Value::ComplexMatrix(b)) => {
             if a.len() != b.len()
-                || a.first().map_or(true, |col| col.len() != b.first().map_or(0, |c| c.len()))
+                || a.first()
+                    .map_or(true, |col| col.len() != b.first().map_or(0, |c| c.len()))
             {
-                anyhow::bail!("Shape mismatch: {:?} vs {:?}", Value::ComplexMatrix(a.clone()), Value::ComplexMatrix(b.clone()))
+                anyhow::bail!(
+                    "Shape mismatch: {:?} vs {:?}",
+                    Value::ComplexMatrix(a.clone()),
+                    Value::ComplexMatrix(b.clone())
+                )
             }
             Ok(Value::ComplexMatrix(
                 a.iter()
@@ -396,9 +444,14 @@ where
         }
         (Value::Matrix(a), Value::ComplexMatrix(b)) => {
             if a.len() != b.len()
-                || a.first().map_or(true, |col| col.len() != b.first().map_or(0, |c| c.len()))
+                || a.first()
+                    .map_or(true, |col| col.len() != b.first().map_or(0, |c| c.len()))
             {
-                anyhow::bail!("Shape mismatch: {:?} vs {:?}", Value::Matrix(a.clone()), Value::ComplexMatrix(b.clone()))
+                anyhow::bail!(
+                    "Shape mismatch: {:?} vs {:?}",
+                    Value::Matrix(a.clone()),
+                    Value::ComplexMatrix(b.clone())
+                )
             }
             let ac: Vec<Vec<num_complex::Complex<f64>>> = a
                 .iter()
@@ -419,9 +472,14 @@ where
         }
         (Value::ComplexMatrix(a), Value::Matrix(b)) => {
             if a.len() != b.len()
-                || a.first().map_or(true, |col| col.len() != b.first().map_or(0, |c| c.len()))
+                || a.first()
+                    .map_or(true, |col| col.len() != b.first().map_or(0, |c| c.len()))
             {
-                anyhow::bail!("Shape mismatch: {:?} vs {:?}", Value::ComplexMatrix(a.clone()), Value::Matrix(b.clone()))
+                anyhow::bail!(
+                    "Shape mismatch: {:?} vs {:?}",
+                    Value::ComplexMatrix(a.clone()),
+                    Value::Matrix(b.clone())
+                )
             }
             let bc: Vec<Vec<num_complex::Complex<f64>>> = b
                 .iter()
@@ -451,7 +509,10 @@ where
 /// `b` has `n_cols_b` columns each of length `n_rows_b`.
 /// For multiplication: `n_cols_a` must equal `n_rows_b`.
 /// Result has `n_cols_b` columns each of length `n_rows_a`.
-fn cmatmul(a: &[Vec<num_complex::Complex<f64>>], b: &[Vec<num_complex::Complex<f64>>]) -> Result<Vec<Vec<num_complex::Complex<f64>>>> {
+fn cmatmul(
+    a: &[Vec<num_complex::Complex<f64>>],
+    b: &[Vec<num_complex::Complex<f64>>],
+) -> Result<Vec<Vec<num_complex::Complex<f64>>>> {
     let n_cols_a = a.len();
     let n_rows_a = a.first().map_or(0, |r| r.len());
     let n_cols_b = b.len();
@@ -459,7 +520,10 @@ fn cmatmul(a: &[Vec<num_complex::Complex<f64>>], b: &[Vec<num_complex::Complex<f
     if n_cols_a != n_rows_b {
         anyhow::bail!(
             "Matrix dimension mismatch: {}x{} * {}x{}",
-            n_rows_a, n_cols_a, n_rows_b, n_cols_b
+            n_rows_a,
+            n_cols_a,
+            n_rows_b,
+            n_cols_b
         );
     }
     let mut result = vec![vec![num_complex::Complex::new(0.0, 0.0); n_rows_a]; n_cols_b];

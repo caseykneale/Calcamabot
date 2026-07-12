@@ -44,7 +44,8 @@ fn test_imag_complex() {
         Value::Complex(c) => {
             assert!(
                 approx_eq(c.re, 0.0, 1e-9) && approx_eq(c.im, 4.0, 1e-9),
-                "Expected 4i, got {}", c
+                "Expected 4i, got {}",
+                c
             );
         }
         other => panic!("Expected Complex, got {:?}", other),
@@ -58,7 +59,8 @@ fn test_imag_real_scalar() {
         Value::Complex(c) => {
             assert!(
                 approx_eq(c.re, 0.0, 1e-9) && approx_eq(c.im, 0.0, 1e-9),
-                "Expected 0i, got {}", c
+                "Expected 0i, got {}",
+                c
             );
         }
         other => panic!("Expected Complex, got {:?}", other),
@@ -72,7 +74,8 @@ fn test_imag_zero() {
         Value::Complex(c) => {
             assert!(
                 approx_eq(c.re, 0.0, 1e-9) && approx_eq(c.im, 0.0, 1e-9),
-                "Expected 0i, got {}", c
+                "Expected 0i, got {}",
+                c
             );
         }
         other => panic!("Expected Complex, got {:?}", other),
@@ -86,7 +89,8 @@ fn test_imag_negative() {
         Value::Complex(c) => {
             assert!(
                 approx_eq(c.re, 0.0, 1e-9) && approx_eq(c.im, -3.0, 1e-9),
-                "Expected -3i, got {}", c
+                "Expected -3i, got {}",
+                c
             );
         }
         other => panic!("Expected Complex, got {:?}", other),

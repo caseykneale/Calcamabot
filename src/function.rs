@@ -13,12 +13,14 @@ pub enum FunctionKind {
 /// Returns `None` if the name is not a known function.
 pub fn function_kind(name: &str) -> Option<FunctionKind> {
     match name {
-        "sin" | "cos" | "tan" | "asin" | "acos" | "atan"
-        | "sinh" | "cosh" | "tanh" | "exp" | "ln" | "log"
-        | "sqrt" | "abs" | "floor" | "ceil" | "round"
-        | "real" | "imag" => Some(FunctionKind::MathUnary),
+        "sin" | "cos" | "tan" | "asin" | "acos" | "atan" | "sinh" | "cosh" | "tanh" | "exp"
+        | "ln" | "log" | "sqrt" | "abs" | "floor" | "ceil" | "round" | "real" | "imag" => {
+            Some(FunctionKind::MathUnary)
+        }
         "conj" => Some(FunctionKind::Conj),
-        "det" | "tr" | "inv" | "fnorm" | "fnormalize" | "norm" | "normalize" | "eye" | "diag" => Some(FunctionKind::MatrixOp),
+        "det" | "tr" | "inv" | "fnorm" | "fnormalize" | "norm" | "normalize" | "eye" | "diag" => {
+            Some(FunctionKind::MatrixOp)
+        }
         _ => None,
     }
 }
