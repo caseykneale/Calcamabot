@@ -38,11 +38,11 @@ I wanted to assess some strengths and weaknesses of local models in a greenfield
 ### CLI Arguments
 ```bash
 # Evaluate a string expression
-math-cli --expression "2 + 3 * sin(pi / 2)"
+calcamabot --expression "2 + 3 * sin(pi / 2)"
 # Pretty-print a matrix
-math-cli -e "[[1,2],[3,4]]" --pretty
+calcamabot -e "[[1,2],[3,4]]" --pretty
 # Export matrices to CSV for plotting, or whatever you want.
-math-cli -e "[[1,2],[3,4]] * [[1,2],[3,4]]" --csv output
+calcamabot -e "[[1,2],[3,4]] * [[1,2],[3,4]]" --csv output
 ```
 
 ## Capabilities at a glance
@@ -66,30 +66,30 @@ How it works under the hood: [`ARCHITECTURE.md`](ARCHITECTURE.md)
 ### Examples
 #### Operator precedence is obeyed
 ```bash
-math-cli -e "8/2*(1+1)-2"
+calcamabot -e "8/2*(1+1)-2"
 8/2*(1+1)-2 = 6
 ```
 
 #### Evaluate complex numbers
 ```bash
-math-cli -e "cos(i) + 42 + 1i"
+calcamabot -e "cos(i) + 42 + 1i"
 cos(i) + 42 + 1i = 43.54308063481524 + 1i
 ```
 ```bash
-math-cli -e "abs(1+1i * conj(1+1i))"
+calcamabot -e "abs(1+1i * conj(1+1i))"
 abs(1+1i * conj(1+1i)) = 2.23606797749979
 ```
 
 #### Work with matrices
 ```bash
-math-cli -e "inv(diag(diag([1,2] * [1,2]')))"
+calcamabot -e "inv(diag(diag([1,2] * [1,2]')))"
 diag(diag([1,2] * [1.5,2.3]')) = 
 2x2 real matrix
 1    0
 0 0.25
 ```
 ```bash
-math-cli -e "[[1,2],[3,4]] * inv([[1,2], [3,4]])" -p
+calcamabot -e "[[1,2],[3,4]] * inv([[1,2], [3,4]])" -p
 [[1,2],[3,4]] * inv([[1,2], [3,4]]) = 
 2x2 real matrix
 1 0
@@ -100,13 +100,13 @@ math-cli -e "[[1,2],[3,4]] * inv([[1,2], [3,4]])" -p
 Unary functions with a `.` before their argument broadcast over collections.
 Ranges are defined by `{start,stop,increment}` where `increment` is optional. 
 ```bash
-math-cli run -- -e "cos.({0,tau,pi/2})"
+calcamabot run -- -e "cos.({0,tau,pi/2})"
 cos.({0,tau,pi/2}) = [[1, 0.00000000000000006123233995736766, -1, -0.00000000000000018369701987210297, 1]]
 ```
 
 Ranges act like vectors.
 ```bash
-math-cli run -- -e "{0,5}*{0,-5}'" --pretty
+calcamabot run -- -e "{0,5}*{0,-5}'" --pretty
 {0,5}*{0,-5}' = 
 6x6 real matrix
 0  0   0   0   0   0
