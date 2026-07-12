@@ -11,44 +11,69 @@ permissions:
 
 jobs:
   test_and_build:
-    runs-on: ubuntu-latest
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          - os: ubuntu-latest
+            artifact_name: calcamabot-linux-amd64.tar.gz
+            binary_path: target/release/calcamabot
+            archive_cmd: |
+              chmod +x target/release/calcamabot
+              tar -czvf calcamabot-linux-amd64.tar.gz -C target/release calcamabot
+          - os: macos-latest
+            artifact_name: calcamabot-macos-amd64.tar.gz
+            binary_path: target/release/calcamabot
+            archive_cmd: |
+              chmod +x target/release/calcamabot
+              tar -czvf calcamabot-macos-amd64.tar.gz -C target/release calcamabot
+          - os: windows-latest
+            artifact_name: calcamabot-windows-amd64.zip
+            binary_path: target/release/calcamabot.exe
+            archive_cmd: |
+              powershell Compress-Archive -Path target\release\calcamabot.exe -DestinationPath calcamabot-windows-amd64.zip -Force
+
+    runs-on: ${{ matrix.os }}
     steps:
       - uses: actions/checkout@v4
+
       - name: Install Rust toolchain
         uses: actions-rust-lang/setup-rust-toolchain@v1
+
       - name: Run tests
         run: cargo test
+
       - name: Build release binary
         run: cargo build --release
-      - name: Upload binary artifact
+
+      - name: Package Binary Archive
+        run: ${{ matrix.archive_cmd }}
+
+      - name: Upload Build Artifacts
         uses: actions/upload-artifact@v4
         with:
-          name: binary-artifact
-          path: target/release/calcamabot
+          name: ${{ matrix.artifact_name }}
+          path: ${{ matrix.artifact_name }}
 
   release:
     needs: test_and_build
-    # Only run this job if we are pushing to main
     if: github.event_name == 'push' && github.ref == 'refs/heads/main'
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
 
-      - name: Download binary artifact
+      - name: Download all build archives
         uses: actions/download-artifact@v4
         with:
-          name: binary-artifact
-          path: target/release/
+          path: release-artifacts/
+          merge-multiple: true
 
       - name: Determine Version and Tag
         id: versioning
         run: |
-          # Extract version from Cargo.toml
           CARGO_VERSION=$(sed -n 's/^version = "\(.*\)"/\1/p' Cargo.toml)
-          # Create a unique tag using the GitHub Run Number
           NEW_TAG="v${CARGO_VERSION}-build-${{ github.run_number }}"
           echo "tag=$NEW_TAG" >> $GITHUB_OUTPUT
-          echo "version=$NEW_TAG" >> $GITHUB_OUTPUT
 
       - name: Create GitHub Release
         uses: softprops/action-gh-release@v3
@@ -56,9 +81,11 @@ jobs:
           tag_name: ${{ steps.versioning.outputs.tag }}
           name: Release ${{ steps.versioning.outputs.tag }}
           body: |
-            Automated release from GitHub Actions.
+            Automated multi-platform release from GitHub Actions.
             Build Number: ${{ github.run_number }}
           files: |
-            target/release/calcamabot
+            release-artifacts/calcamabot-linux-amd64.tar.gz
+            release-artifacts/calcamabot-macos-amd64.tar.gz
+            release-artifacts/calcamabot-windows-amd64.zip
           draft: false
           prerelease: false
