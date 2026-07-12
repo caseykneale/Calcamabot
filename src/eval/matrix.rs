@@ -288,7 +288,9 @@ pub fn matrix_fnormalize(mat: &[Vec<f64>]) -> Result<Vec<Vec<f64>>> {
 ///
 /// Matrices are stored in column-major format: each inner `Vec` is a column.
 /// Returns a `Complex<f64>` (the full complex determinant).
-pub fn matrix_det_complex(mat: &[Vec<num_complex::Complex<f64>>]) -> Result<num_complex::Complex<f64>> {
+pub fn matrix_det_complex(
+    mat: &[Vec<num_complex::Complex<f64>>],
+) -> Result<num_complex::Complex<f64>> {
     let n = mat.len();
     if n == 0 || mat.first().map_or(true, |r| r.len() != n) {
         anyhow::bail!(
@@ -302,9 +304,8 @@ pub fn matrix_det_complex(mat: &[Vec<num_complex::Complex<f64>>]) -> Result<num_
     }
 
     // Convert column-major to row-major for standard LU decomposition.
-    let mut a: Vec<Vec<num_complex::Complex<f64>>> = vec![
-        vec![num_complex::Complex::new(0.0, 0.0); n]; n
-    ];
+    let mut a: Vec<Vec<num_complex::Complex<f64>>> =
+        vec![vec![num_complex::Complex::new(0.0, 0.0); n]; n];
     for col in 0..n {
         for row in 0..n {
             a[row][col] = mat[col][row];
@@ -375,9 +376,8 @@ pub fn matrix_inv_complex(
     }
 
     // Convert column-major to row-major
-    let mut a: Vec<Vec<num_complex::Complex<f64>>> = vec![
-        vec![num_complex::Complex::new(0.0, 0.0); n]; n
-    ];
+    let mut a: Vec<Vec<num_complex::Complex<f64>>> =
+        vec![vec![num_complex::Complex::new(0.0, 0.0); n]; n];
     for col in 0..n {
         for row in 0..n {
             a[row][col] = mat[col][row];
@@ -385,9 +385,8 @@ pub fn matrix_inv_complex(
     }
 
     // Build augmented matrix [A | I] in row-major
-    let mut aug: Vec<Vec<num_complex::Complex<f64>>> = vec![
-        vec![num_complex::Complex::new(0.0, 0.0); 2 * n]; n
-    ];
+    let mut aug: Vec<Vec<num_complex::Complex<f64>>> =
+        vec![vec![num_complex::Complex::new(0.0, 0.0); 2 * n]; n];
     for row in 0..n {
         for col in 0..n {
             aug[row][col] = a[row][col];
@@ -598,7 +597,8 @@ pub fn diag(arg: crate::value::Value) -> Result<crate::value::Value> {
             } else {
                 // Complex matrix → extract diagonal as complex vector
                 let min_dim = n_rows.min(n_cols);
-                let diag_vals: Vec<num_complex::Complex<f64>> = (0..min_dim).map(|i| m[i][i]).collect();
+                let diag_vals: Vec<num_complex::Complex<f64>> =
+                    (0..min_dim).map(|i| m[i][i]).collect();
                 Ok(crate::value::Value::ComplexMatrix(vec![diag_vals]))
             }
         }

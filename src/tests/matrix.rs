@@ -688,11 +688,7 @@ fn test_normalize_2x2() {
 fn test_normalize_vector() {
     // normalize([3,4]) → col=[3/5, 4/5] = [0.6, 0.8]
     let m: Vec<Vec<f64>> = vec![vec![0.6, 0.8]];
-    expect_matrix(
-        &parse_and_eval("normalize([3,4])").unwrap(),
-        &[&m[0]],
-        1e-9,
-    );
+    expect_matrix(&parse_and_eval("normalize([3,4])").unwrap(), &[&m[0]], 1e-9);
 }
 
 #[test]
@@ -947,7 +943,11 @@ fn test_eye_3x3() {
         vec![0.0, 1.0, 0.0],
         vec![0.0, 0.0, 1.0],
     ];
-    expect_matrix(&parse_and_eval("eye(3)").unwrap(), &[&m[0], &m[1], &m[2]], 1e-9);
+    expect_matrix(
+        &parse_and_eval("eye(3)").unwrap(),
+        &[&m[0], &m[1], &m[2]],
+        1e-9,
+    );
 }
 
 #[test]
@@ -969,7 +969,11 @@ fn test_eye_zero() {
 #[test]
 fn test_eye_in_expression() {
     // eye(2) * [1,2] = [1,2]
-    expect_vector(&parse_and_eval("eye(2) * [1,2]").unwrap(), &[1.0, 2.0], 1e-9);
+    expect_vector(
+        &parse_and_eval("eye(2) * [1,2]").unwrap(),
+        &[1.0, 2.0],
+        1e-9,
+    );
 }
 
 #[test]
@@ -993,7 +997,11 @@ fn test_diag_vector_to_matrix() {
         vec![0.0, 2.0, 0.0],
         vec![0.0, 0.0, 3.0],
     ];
-    expect_matrix(&parse_and_eval("diag([1,2,3])").unwrap(), &[&m[0], &m[1], &m[2]], 1e-9);
+    expect_matrix(
+        &parse_and_eval("diag([1,2,3])").unwrap(),
+        &[&m[0], &m[1], &m[2]],
+        1e-9,
+    );
 }
 
 #[test]
@@ -1008,21 +1016,33 @@ fn test_diag_matrix_extract() {
     // diag([[1,2],[3,4]]) should extract diagonal [1,4]
     // In column-major: col0=[1,4]
     let m: Vec<Vec<f64>> = vec![vec![1.0, 4.0]];
-    expect_matrix(&parse_and_eval("diag([[1,2],[3,4]])").unwrap(), &[&m[0]], 1e-9);
+    expect_matrix(
+        &parse_and_eval("diag([[1,2],[3,4]])").unwrap(),
+        &[&m[0]],
+        1e-9,
+    );
 }
 
 #[test]
 fn test_diag_2x2_matrix() {
     // diag([[2,0],[0,3]]) should extract diagonal [2,3]
     let m: Vec<Vec<f64>> = vec![vec![2.0, 3.0]];
-    expect_matrix(&parse_and_eval("diag([[2,0],[0,3]])").unwrap(), &[&m[0]], 1e-9);
+    expect_matrix(
+        &parse_and_eval("diag([[2,0],[0,3]])").unwrap(),
+        &[&m[0]],
+        1e-9,
+    );
 }
 
 #[test]
 fn test_diag_non_square_extract() {
     // diag([[1,2,3],[4,5,6]]) should extract min(2,3)=2 diagonal elements: [1,5]
     let m: Vec<Vec<f64>> = vec![vec![1.0, 5.0]];
-    expect_matrix(&parse_and_eval("diag([[1,2,3],[4,5,6]])").unwrap(), &[&m[0]], 1e-9);
+    expect_matrix(
+        &parse_and_eval("diag([[1,2,3],[4,5,6]])").unwrap(),
+        &[&m[0]],
+        1e-9,
+    );
 }
 
 #[test]
@@ -1030,14 +1050,22 @@ fn test_diag_roundtrip() {
     // diag(diag(A)) should give back the diagonal as a 1x1 matrix for a diagonal matrix
     // Actually: diag([1,2,3]) creates diag matrix, then diag of that extracts [1,2,3]
     let m: Vec<Vec<f64>> = vec![vec![1.0, 2.0, 3.0]];
-    expect_matrix(&parse_and_eval("diag(diag([1,2,3]))").unwrap(), &[&m[0]], 1e-9);
+    expect_matrix(
+        &parse_and_eval("diag(diag([1,2,3]))").unwrap(),
+        &[&m[0]],
+        1e-9,
+    );
 }
 
 #[test]
 fn test_diag_in_expression() {
     // diag([1,2]) + eye(2) = [[2,0],[0,3]]
     let m: Vec<Vec<f64>> = vec![vec![2.0, 0.0], vec![0.0, 3.0]];
-    expect_matrix(&parse_and_eval("diag([1,2]) + eye(2)").unwrap(), &[&m[0], &m[1]], 1e-9);
+    expect_matrix(
+        &parse_and_eval("diag([1,2]) + eye(2)").unwrap(),
+        &[&m[0], &m[1]],
+        1e-9,
+    );
 }
 
 #[test]
@@ -1059,15 +1087,29 @@ fn test_pretty_print_real_matrix() {
     let result = parse_and_eval("[[1,3],[4,5]]").unwrap();
     let s = format!("{result:#}");
     // Should display as a 2x2 matrix with correct row/column ordering
-    assert!(s.contains("2x2 real matrix"), "Display should contain dimensions: {}", s);
+    assert!(
+        s.contains("2x2 real matrix"),
+        "Display should contain dimensions: {}",
+        s
+    );
     // The matrix [[1,3],[4,5]] in column-major is col0=[1,4], col1=[3,5]
     // So the display should show the transpose:
     // 1 4
     // 3 5
     let lines: Vec<&str> = s.lines().collect();
     // Skip the empty line and header line (first two lines are empty and dimensions)
-    let data_lines: Vec<&str> = lines.into_iter().skip(2).filter(|l| !l.is_empty()).collect();
-    assert_eq!(data_lines.len(), 2, "Expected 2 data lines, got {}: {}", data_lines.len(), s);
+    let data_lines: Vec<&str> = lines
+        .into_iter()
+        .skip(2)
+        .filter(|l| !l.is_empty())
+        .collect();
+    assert_eq!(
+        data_lines.len(),
+        2,
+        "Expected 2 data lines, got {}: {}",
+        data_lines.len(),
+        s
+    );
     // First row should be "1 4"
     assert!(
         data_lines[0].contains("1") && data_lines[0].contains("4"),

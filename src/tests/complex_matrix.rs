@@ -193,8 +193,16 @@ fn test_conjugate_transpose_display() {
     let result = parse_and_eval("[[1+2i, 3-4i]]\"").unwrap();
     let s = format!("{}", result);
     // Should display as a 2×1 complex matrix
-    assert!(s.contains("1 - 2i") || s.contains("1-2i"), "Display should contain conjugate: {}", s);
-    assert!(s.contains("3 + 4i") || s.contains("3+4i"), "Display should contain conjugate: {}", s);
+    assert!(
+        s.contains("1 - 2i") || s.contains("1-2i"),
+        "Display should contain conjugate: {}",
+        s
+    );
+    assert!(
+        s.contains("3 + 4i") || s.contains("3+4i"),
+        "Display should contain conjugate: {}",
+        s
+    );
 }
 
 // ── Complex matrix arithmetic ────────────────────────────────────────
@@ -442,8 +450,16 @@ fn test_conj_then_multiply_returns_real() {
 fn test_complex_matrix_display() {
     let result = parse_and_eval("[[1+2i, 3-4i]]").unwrap();
     let s = format!("{}", result);
-    assert!(s.contains("1 + 2i") || s.contains("1+2i"), "Display should contain 1+2i: {}", s);
-    assert!(s.contains("3 - 4i") || s.contains("3-4i"), "Display should contain 3-4i: {}", s);
+    assert!(
+        s.contains("1 + 2i") || s.contains("1+2i"),
+        "Display should contain 1+2i: {}",
+        s
+    );
+    assert!(
+        s.contains("3 - 4i") || s.contains("3-4i"),
+        "Display should contain 3-4i: {}",
+        s
+    );
 }
 
 #[test]
@@ -640,7 +656,7 @@ fn test_complex_inv_2x2_diagonal() {
         Value::ComplexMatrix(m) => {
             assert_eq!(m.len(), 2); // 2 columns
             assert_eq!(m[0].len(), 2); // 2 rows
-            // col0 = [1+2i, 0] → inv col0 = [1/(1+2i), 0]
+                                       // col0 = [1+2i, 0] → inv col0 = [1/(1+2i), 0]
             let c00 = m[0][0];
             assert!(approx_eq(c00.re, 0.2, 1e-9));
             assert!(approx_eq(c00.im, -0.4, 1e-9));
@@ -717,16 +733,30 @@ fn test_pretty_print_complex_matrix() {
     let result = parse_and_eval("[[1+2i, 3-4i]]").unwrap();
     let s = format!("{result:#}");
     // Should display as a complex matrix with correct dimensions and ordering
-    assert!(s.contains("complex matrix"), "Display should contain 'complex matrix': {}", s);
+    assert!(
+        s.contains("complex matrix"),
+        "Display should contain 'complex matrix': {}",
+        s
+    );
     // The matrix [[1+2i, 3-4i]] in column-major is col0=[1+2i, 3-4i], so it's 2x1
     // After fix, the display should show the transpose:
     // 1 + 2i
     // 3 - 4i
     let lines: Vec<&str> = s.lines().collect();
     // Skip the empty line and header line (first two lines are empty and dimensions)
-    let data_lines: Vec<&str> = lines.into_iter().skip(2).filter(|l| !l.is_empty()).collect();
+    let data_lines: Vec<&str> = lines
+        .into_iter()
+        .skip(2)
+        .filter(|l| !l.is_empty())
+        .collect();
     // Should have 2 data lines (2 rows) for a 2x1 matrix
-    assert_eq!(data_lines.len(), 2, "Expected 2 data lines for 2x1 matrix, got {}: {}", data_lines.len(), s);
+    assert_eq!(
+        data_lines.len(),
+        2,
+        "Expected 2 data lines for 2x1 matrix, got {}: {}",
+        data_lines.len(),
+        s
+    );
     // First row should contain 1+2i
     assert!(
         data_lines[0].contains("1") && data_lines[0].contains("2i"),
