@@ -1,0 +1,64 @@
+name: CI and Release
+
+on:
+  push:
+    branches: [ "main" ]
+  pull_request:
+    branches: [ "main" ]
+
+permissions:
+  contents: write
+
+jobs:
+  test_and_build:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Install Rust toolchain
+        uses: rust-lang/setup-rust-toolchain@v1
+      - name: Run tests
+        run: cargo test
+      - name: Build release binary
+        run: cargo build --release
+      - name: Upload binary artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: binary-artifact
+          path: target/release/calcamabot
+
+  release:
+    needs: test_and_build
+    # Only run this job if we are pushing to main
+    if: github.event_name == 'push' && github.ref == 'refs/heads/main'
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Download binary artifact
+        uses: actions/download-artifact@v4
+        with:
+          name: binary-artifact
+          path: target/release/
+
+      - name: Determine Version and Tag
+        id: versioning
+        run: |
+          # Extract version from Cargo.toml
+          CARGO_VERSION=$(sed -n 's/^version = "\(.*\)"/\1/p' Cargo.toml)
+          # Create a unique tag using the GitHub Run Number
+          NEW_TAG="v${CARGO_VERSION}-build-${{ github.run_number }}"
+          echo "tag=$NEW_TAG" >> $GITHUB_OUTPUT
+          echo "version=$NEW_TAG" >> $GITHUB_OUTPUT
+
+      - name: Create GitHub Release
+        uses: softprops/action-release@v3
+        with:
+          tag_name: ${{ steps.versioning.outputs.tag }}
+          name: Release ${{ steps.versioning.outputs.tag }}
+          body: |
+            Automated release from GitHub Actions.
+            Build Number: ${{ github.run_number }}
+          files: |
+            target/release/calcamabot
+          draft: false
+          prerelease: false
