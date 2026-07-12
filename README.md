@@ -14,16 +14,16 @@ I wanted to assess some strengths and weaknesses of local models in a greenfield
 
 ### What I think this calculator does right
 
-- It handles complex math reasonably well. For example, `sqrt(-1)` yeilds `i`. Yea `i` is the same as `1i`. Multiplying a real by a complex matrix doesn't require a cast or anything, it just does what I expect. Some transcendentals also just do what I would expect, which is nice. I personally find complex numbers in Julia and Python to be kind of ugly for simple questions.
+- It handles complex math reasonably well. For example, `sqrt(-1)` yeilds `i`. `i` is the same as `1i`. Multiplying a real by a complex matrix doesn't require a cast or anything, it just does what I expect. Some transcendentals also just do what I would expect, which is nice. I personally find complex numbers in Julia and Python to be kind of ugly for simple questions.
 - I like that it has ranges, pretty print, and csv export. I use these types of things to generate artifical data a lot. This turns 20 lines of code in a lot of languages into 1 mostly readable shell call. So that's nice.
-- It's small and fast for small calculations. 1.5MB small. An example run for a small calculation involving matrices used 2.92 MB and completed in less than 0.00 seconds. Thats hundreds of times smaller and faster than Julia or python equivalent for a one-off. The trick is that it has a low overhead.
+- It's small and fast for small calculations. 1.5MB small. An example run for a small calculation involving matrices used 2.92 MB and completed in less than 0.00 seconds. Thats hundreds of times smaller and faster than Julia equivalent for a one-off. The key is that it has a low overhead.
 
 ### What I think it does wrong
 
 - I don't know if I love the decision I made to have `[1,2,3]` be a 3x1 and `[[1,2,3],[4,5,6]]` be a 3x2 matrix, and have that notation be the only way to construct a matrix. Oh well.
 - Although it handles complex numbers pretty well, there is a gap in the parser/evaluator where `(1 + 2i) * (3 - 4i)` is not the same thing as `1+2i * 3-4i` and thats confusing. To be fair, Julia handles this the same way so use parenthesis when you have too.
 - It does not have good all around performance. It's good enough, you won't feel small matrix multiplications or anything, but please don't feed this into a production API or something that needs a warm cache, does heavy lifting, etc.
-- The code isn't great. I tried driving the tools to do write cleaner code but I hit my artifical dead-line for the project. See my [experience report](EXPERIENCE.md) for more details.
+- The code isn't great. I tried driving the tools to write cleaner code but I hit my artifical dead-line for the project. See my [experience report](EXPERIENCE.md) for more details.
 
 ## Project goals
 - Provide a dependency-light command-line tool for evaluating math expressions with a simple syntax.
