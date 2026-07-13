@@ -1,6 +1,6 @@
 # Calcamabot
 
-A small Rust CLI application that evaluates mathematical expressions using a Pratt parser, with support for **complex numbers** and **matrices**.
+A small Rust CLI application that evaluates mathematical expressions using a Pratt parser, with support for complex numbers and matrix math.
 
 ## Documentation
 
@@ -8,15 +8,17 @@ A small Rust CLI application that evaluates mathematical expressions using a Pra
 |---|---|
 | Pipeline, design decisions, source map | Full syntax and function reference |
 
-## Why?
-
-I wanted to assess some strengths and weaknesses of local models in a greenfield project. This is an extension of a project I did many years ago to learn about Pratt parsers. I jokingly called that project [`Calcamabob`](https://github.com/caseykneale/Calcamabob), it wasn't a serious project. Calcamabob only did basic algebra with support for some transcendental functions. I wanted to see if I could use specification driven agentic development to build a more capable calculator using only local models. I wrote a [report about the experience](EXPERIENCE.md) if anyone is interested. This also isn't a serious project.
+## Project goals
+- Provide a dependency-light command-line tool for evaluating math expressions with a simple syntax.
+- Support common mathematical functions and constants(`pi`, `tau`, `phi`, `e`, etc) out of the box.
+- Support complex numbers (scalars and matrices) with full arithmetic, transcendental functions, and matrix operations.
+- Give useful error messages when an expression is malformed.
 
 ### What I think this calculator does right
 
 - It handles complex math reasonably well. For example, `sqrt(-1)` yeilds `i`. `i` is the same as `1i`. Multiplying a real by a complex matrix doesn't require a cast or anything, it just does what I expect. Some transcendentals also just do what I would expect, which is nice. I personally find complex numbers in Julia and Python to be kind of ugly for simple questions.
-- I like that it has ranges, pretty print, and csv export. I use these types of things to generate artifical data a lot. This turns 20 lines of code in a lot of languages into 1 mostly readable shell call. So that's nice.
-- It's small and fast for small calculations. 1.5MB small. An example run for a small calculation involving matrices used 2.92 MB and completed in less than 0.00 seconds. Thats hundreds of times smaller and faster than Julia equivalent for a one-off. The key is that it has a low overhead.
+- I like that it has ranges, pretty print, and csv export. I use these types of things to generate artifical data a lot. This tool turns 20 lines of code in a lot of languages into 1 mostly readable shell call.
+- It's small (1.5MB download) and fast for small one off calculations. An example run for a small calculation involving matrices used 2.92 MB of RAM and completed in less than 0.009 seconds. Thats hundreds of times smaller and faster than Julia equivalent for a one-off calculation. The key is that it has a low overhead.
 
 ### What I think it does wrong
 
@@ -25,13 +27,9 @@ I wanted to assess some strengths and weaknesses of local models in a greenfield
 - It does not have good all around performance. It's good enough, you won't feel small matrix multiplications or anything, but please don't feed this into a production API or something that needs a warm cache, does heavy lifting, etc.
 - The code isn't great. I tried driving the tools to write cleaner code but I hit my artifical dead-line for the project. See my [experience report](EXPERIENCE.md) for more details.
 
-## Project goals
-- Provide a dependency-light command-line tool for evaluating math expressions with a simple syntax.
-- Demonstrate a Pratt parser implementation in Rust with clean separation of concerns (lexer → parser → evaluator).
-- Support common mathematical functions and constants out of the box.
-- Support complex numbers (scalars and matrices) with full arithmetic, transcendental functions, and matrix operations.
-- Give clear, actionable error messages when an expression is malformed.
+## Why?
 
+I wanted to assess some strengths and weaknesses of local models in a greenfield project. This is an extension of a project I did many years ago to learn about Pratt parsers. I jokingly called that project [`Calcamabob`](https://github.com/caseykneale/Calcamabob), it wasn't a serious project. Calcamabob only did basic algebra with support for some transcendental functions. I wanted to see if I could use specification driven agentic development to build a more capable calculator using only local models. I wrote a [report about the experience](EXPERIENCE.md) if anyone is interested. Like calcamabob, calcamabot also isn't a serious project.
 
 ## Quick start
 
@@ -42,7 +40,7 @@ calcamabot --expression "2 + 3 * sin(pi / 2)"
 # Pretty-print a matrix
 calcamabot -e "[[1,2],[3,4]]" --pretty
 # Export matrices to CSV for plotting, or whatever you want.
-calcamabot -e "[[1,2],[3,4]] * [[1,2],[3,4]]" --csv output
+calcamabot -e "[[1,2],[3,4]] * [[1,2],[3,4]]" --csv output_file.csv
 ```
 
 ## Capabilities at a glance
@@ -100,13 +98,13 @@ calcamabot -e "[[1,2],[3,4]] * inv([[1,2], [3,4]])" -p
 Unary functions with a `.` before their argument broadcast over collections.
 Ranges are defined by `{start,stop,increment}` where `increment` is optional. 
 ```bash
-calcamabot run -- -e "cos.({0,tau,pi/2})"
+calcamabot -e "cos.({0,tau,pi/2})"
 cos.({0,tau,pi/2}) = [[1, 0.00000000000000006123233995736766, -1, -0.00000000000000018369701987210297, 1]]
 ```
 
 Ranges act like vectors.
 ```bash
-calcamabot run -- -e "{0,5}*{0,-5}'" --pretty
+calcamabot -e "{0,5}*{0,-5}'" --pretty
 {0,5}*{0,-5}' = 
 6x6 real matrix
 0  0   0   0   0   0
@@ -128,11 +126,10 @@ cargo test
 I likely will not accept or review issues or PR's. This was mostly an experiment. I'll possibly use the tool here and there to reduce my dependence on some other's but I am not trying to draw in even a small crowd.
 
 ### Possible ToDo's
-- [ ] **Aggregation Operations** Support `sum()`, `mean()`, `median()`, `std()`, `min()`, `max()` for collections, and when broadcasted columnwise.
+- [ ] **Aggregation Operations** Support `sum()`, `mean()`, `median()`(real support only), `std()`, `min()`(real support only), `max()`(real support only) for collections, and when broadcasted columnwise.
 - [ ] **Multiple expressions per file** (one per line, evaluated independently, allowing for an `ans` keyword or actual variable assignment)
 - [ ] **History / REPL mode**: interactive prompt with expression history
 - [ ] **Load CSV's as variables**: Could be useful to use this on some real data, but its already grown a bit past what it needs to do. Performance might not be good.
-
 
 ## AI Usage Disclosure
 All of the code written in this repository was done so with a LLM guided by a person. The markdown files contain content both written by a person and an agentic workflow. The `EXPERIENCE.md` file is entirely human written, this file is mostly human written and the others are mostly LLM written.
